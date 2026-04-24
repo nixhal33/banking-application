@@ -10,15 +10,16 @@ services:
       - ./mysql-data:/var/lib/mysql
 
   mainapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: bankapp:latest
     container_name: Bankapp
-    context:
-      build: .
     environment:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/BankDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - SPRING_DATASOURCE_PASSWORD=root@123
     ports:
-      - "8080:8080"
+      - "8082:8080"
     depends_on:
       - mysql
