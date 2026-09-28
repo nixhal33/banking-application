@@ -1,1 +1,2 @@
 mysql-data
+helm-chart/bankapp/templates/secrets.yaml

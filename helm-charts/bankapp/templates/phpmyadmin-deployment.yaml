@@ -1,0 +1,41 @@
+{{- if .Values.phpmyadmin.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bankapp.fullname" . }}-phpmyadmin
+  labels:
+    {{- include "bankapp.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "bankapp.name" . }}-phpmyadmin
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "bankapp.name" . }}-phpmyadmin
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: "{{ .Values.phpmyadmin.image.repository }}:{{ .Values.phpmyadmin.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: PMA_HOST
+              value: {{ .Values.mysql.service.name | quote }}
+            - name: PMA_PORT
+              value: {{ .Values.mysql.service.port | quote }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          {{- with .Values.phpmyadmin.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

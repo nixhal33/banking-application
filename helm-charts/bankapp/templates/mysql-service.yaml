@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mysql.service.name }}
+  labels:
+    {{- include "bankapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.mysql.service.type }}
+  ports:
+    - name: mysql
+      port: {{ .Values.mysql.service.port }}
+      targetPort: mysql
+  selector:
+    app.kubernetes.io/name: {{ include "bankapp.name" . }}-mysql
+    app.kubernetes.io/instance: {{ .Release.Name }}

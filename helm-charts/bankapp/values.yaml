@@ -1,0 +1,107 @@
+replicaCount: 1
+
+image:
+  repository: kubenix/bankapp
+  pullPolicy: IfNotPresent
+  tag: "v.1.0.1"
+
+db:
+  name: bankappdb
+  url: "jdbc:mysql://bankapp-db:3306/bankappdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  existingSecret: secrets
+
+# ---------- App service (exposed) ----------
+service:
+  name: bankapp
+  type: LoadBalancer
+  port: 8080
+  loadBalancerIP: "192.168.50.203"       # e.g. 192.168.1.201; empty = MetalLB picks one
+
+# ---------- MySQL (internal only) ----------
+mysql:
+  image:
+    repository: mysql
+    tag: "8.0"
+  storage: 2Gi
+  storageClass: ""         # empty = cluster default
+  service:
+    name: bankapp-db       # must match the host in db.url
+    type: ClusterIP
+    port: 3306
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# ---------- phpMyAdmin (exposed, dev only) ----------
+phpmyadmin:
+  enabled: true
+  image:
+    repository: phpmyadmin
+    tag: "5"
+  service:
+    type: LoadBalancer
+    port: 8081
+    loadBalancerIP: "192.168.50.204"     # e.g. 192.168.1.202; empty = MetalLB picks one
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# ---------- App resources ----------
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+healthCheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: http
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+ingress:
+  enabled: false
+
+httpRoute:
+  enabled: false
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,21 @@
+{{- if .Values.phpmyadmin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bankapp.fullname" . }}-phpmyadmin
+  labels:
+    {{- include "bankapp.labels" . | nindent 4 }}
+  {{- if .Values.phpmyadmin.service.loadBalancerIP }}
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ .Values.phpmyadmin.service.loadBalancerIP | quote }}
+  {{- end }}
+spec:
+  type: {{ .Values.phpmyadmin.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.phpmyadmin.service.port }}
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: {{ include "bankapp.name" . }}-phpmyadmin
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
