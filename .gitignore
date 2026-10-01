@@ -2,3 +2,6 @@ mysql-data
 .env
 helm-charts/bankapp/templates/secrets.yaml
 .db_secrets
+vault-env.sh
+.env.vault
+mysql-vaulted-data

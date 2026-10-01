@@ -1,0 +1,38 @@
+services:
+  mysql-vaulted:
+    image: mysql:8.0
+    container_name: mysql-vaulted
+    restart: unless-stopped
+    env_file:
+      - .env.vault
+    volumes:
+      - ./mysql-vaulted-data:/var/lib/mysql
+    networks:
+      - bankapp-vault-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  bankapp-vaulted:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kubenix/bankapp-vaulted:v.1.0.0
+    container_name: bankapp-vaulted
+    restart: unless-stopped
+    env_file:
+      - .env.vault
+    ports:
+      - "8083:8080"
+    networks:
+      - bankapp-vault-net
+    depends_on:
+      mysql-vaulted:
+        condition: service_healthy
+
+networks:
+  bankapp-vault-net:
+
